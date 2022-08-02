@@ -1,0 +1,54 @@
+launch_files:
+  - package: structured_testing
+    file: testA.launch
+
+  - package: structured_testing
+    file: testB.launch
+
+  - package: rospy_tutorials
+    file: advanced_publish.launch
+
+bag_files:
+  - /home/parallels/Development/UWAFT/src/all_nodes.bag
+
+observers:
+  - name: LeadVehicleDistance
+    observerClass: MinMaxObserver
+    observerType: ALWAYS_TRUE
+    topic: "/lead_vechicle"
+    msgType: "std_msgs.msg.Float32"
+    field: "data"
+    value: 1 #in m 
+    isMin: True
+
+  - name: RadarHeartbeat
+    observerClass: HeartbeatObserver
+    topic: "/radar_tracked_objects"
+    msgType: "nav_msgs.msg.Odometry"
+
+  - name: RaderObjectsIDObserver
+    observerClass: MinMaxObserver
+    observerType: ALWAYS_TRUE
+    topic: "/radar_tracked_objects"
+    msgType: "nav_msgs.msg.Odometry"
+    field: "header.seq"
+    value: 120 #in m 
+    isMin: False #Max Value
+
+  - name: CmdVelFrequency
+    observerClass: FrequencyObserver
+    topic: "/cmd_vel"
+    msgType: "geometry_msgs.msg.Twist"
+    minFreq: 10
+  
+  - name: CmdVelX
+    observerClass: InRangeObserver
+    topic: "/cmd_vel"
+    msgType: "geometry_msgs.msg.Twist"
+    field: "linear.x"
+    observerType: ALWAYS_TRUE
+    minVal: 0
+    maxVal: 10
+
+
+
