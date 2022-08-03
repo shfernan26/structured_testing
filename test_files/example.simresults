@@ -1,5 +1,5 @@
 - name: LeadVehicleDistance
-  Status: FAIL
+  Status: PASS
   observerClass: MinMaxObserver
   topic(s):
   - /lead_vechicle
@@ -8,7 +8,7 @@
   isMin: true
   value: 1.0
 - name: RadarHeartbeat
-  Status: PASS
+  Status: FAIL
   observerClass: HeartbeatObserver
   topic(s):
   - /radar_tracked_objects
@@ -23,7 +23,7 @@
   isMin: false
   value: 120.0
 - name: CmdVelFrequency
-  Status: PASS
+  Status: FAIL
   observerClass: FrequencyObserver
   topic(s):
   - /cmd_vel

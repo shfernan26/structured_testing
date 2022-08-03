@@ -3,23 +3,24 @@ import sys
 import os
 import signal
 import subprocess
+import argparse
 
 from subprocess import DEVNULL, STDOUT, check_call
 
 import rosbag
-import rosmaster 
+import rosmaster
 import xmlrpc
 
 from xml.dom.minidom import parse, parseString
 from time import sleep
-from base_observer import *
+from observers.base_observer import *
+from observers import *
 
 
 from sim_yaml_parser import getYAMLData, dumpOrderedDict
 
 
 class LaunchProcessManager:
-
     def __init__(self, launch_files, bags, topics, observers, results_file):
         self.launch_files = launch_files
         self.topics = topics
@@ -31,17 +32,25 @@ class LaunchProcessManager:
         self.startLaunchProcess()
         self.observer_manager = ObserverManager()
         for obs in observers:
-             self.observer_manager.addObserver(obs)
+            self.observer_manager.addObserver(obs)
         self.results_file = results_file
-    
+
     def startBagPlayback(self):
         for bag, topics in self.bag_to_topic.items():
-            topic_string = str(topics) # Of the form {'A', 'B'}
-            topic_string = topic_string.lstrip("{"). rstrip("}") #Remove braces looks like 'A', 'B'
-            topic_string = topic_string.replace(",", " ") #remove comma looks like 'A' 'B'
+            topic_string = str(topics)  # Of the form {'A', 'B'}
+            topic_string = topic_string.lstrip("{").rstrip(
+                "}"
+            )  # Remove braces looks like 'A', 'B'
+            topic_string = topic_string.replace(
+                ",", " "
+            )  # remove comma looks like 'A' 'B'
             start_command = f"rosbag play {bag.path} --topics {topic_string}"
             print(start_command)
-            self.bag_processes.append(subprocess.Popen(start_command, shell=True, stdout=DEVNULL, stderr=STDOUT))
+            self.bag_processes.append(
+                subprocess.Popen(
+                    start_command, shell=True, stdout=DEVNULL, stderr=STDOUT
+                )
+            )
 
     def killBagPlayback(self):
         for p in self.bag_processes:
@@ -55,19 +64,20 @@ class LaunchProcessManager:
         observer_results = self.observer_manager.getResults()
         dumpOrderedDict(observer_results, self.results_file)
 
-
     def kill(self):
         self.killBagPlayback()
         self.killLaunchFiles()
         self.killObservers()
 
-
     def startLaunchProcess(self):
         for lf in self.launch_files:
             start_command = f"roslaunch {lf.path}"
             print(start_command)
-            self.launch_processes.append(subprocess.Popen(start_command, shell=True, stdout=DEVNULL, stderr=STDOUT))
-
+            self.launch_processes.append(
+                subprocess.Popen(
+                    start_command, shell=True, stdout=DEVNULL, stderr=STDOUT
+                )
+            )
 
     def generateGetBagTopicMap(self):
         self.bag_to_topic = dict()
@@ -95,6 +105,7 @@ class Bagfile:
         bag = rosbag.Bag(file_path)
         return set(bag.get_type_and_topic_info().topics.keys())
 
+
 class Launchfile:
     def __init__(self, file_path):
         self.path = file_path
@@ -103,8 +114,8 @@ class Launchfile:
 
     def getTopicsFromXML(self, file_path, typeOfTopic):
         topics = set()
-        root = parse(file_path).getElementsByTagName('launch')[0]
-    
+        root = parse(file_path).getElementsByTagName("launch")[0]
+
         topic_list = root.getElementsByTagName(typeOfTopic)
         if not topic_list:
             return topics
@@ -117,8 +128,6 @@ class Launchfile:
     def __str__(self):
         return self.path
 
-        
-
 
 class LaunchManager:
     def __init__(self):
@@ -130,7 +139,9 @@ class LaunchManager:
 
     def addLaunchFile(self, file_path):
         if file_path in self.launch_files:
-            raise Exception(f"Launchfile {file_path} already registered to launch manager")
+            raise Exception(
+                f"Launchfile {file_path} already registered to launch manager"
+            )
         self.launch_files.add(Launchfile(file_path))
 
     def addBagFile(self, file_path):
@@ -141,17 +152,17 @@ class LaunchManager:
     def addLaunchFiles(self, lf_list):
         for lf in lf_list:
             self.addLaunchFile(lf)
-    
+
     def addBagFiles(self, bag_list):
         for b in bag_list:
             self.addBagFile(b)
-    
+
     def extractTopicsFromLaunchFiles(self):
         published_topics = set()
         required_topics = set()
         for lf in self.launch_files:
             published_topics |= lf.published_topics
-            required_topics  |= lf.required_topics
+            required_topics |= lf.required_topics
         self.published_topics = published_topics
         self.required_topics = required_topics
 
@@ -165,37 +176,42 @@ class LaunchManager:
         missing_topics = self.required_topics - self.published_topics
         if missing_topics <= self.bagged_topics:
             return missing_topics
-        raise Exception(f"Launch Files require {missing_topics} but all topics not found in bags. ")
-            
+        raise Exception(
+            f"Launch Files require {missing_topics} but all topics not found in bags. "
+        )
 
 
 lpm = None
 
+
 def signal_handler(sig, frame):
-    print('Killing all Structured Testing')
+    print("Killing all Structured Testing")
     lpm.kill()
     sys.exit(0)
 
+
 def rosUP():
     try:
-        m = xmlrpc.client.ServerProxy(os.environ['ROS_MASTER_URI'])
+        m = xmlrpc.client.ServerProxy(os.environ["ROS_MASTER_URI"])
         code, msg, val = m.getSystemState("")
         if code != 1:
             return False
         return True
     except Exception as e:
         print(e)
-        return False 
-    return True
+        return False
 
-def main():
+
+def main(simFile):
     global lpm
     if not rosUP():
-        raise Exception("Structured Testing started without rosmaster while ensure roscore is running")
-    rospy.init_node('SimulationManager')
+        raise Exception(
+            "Structured Testing started without rosmaster while ensure roscore is running"
+        )
+    rospy.init_node("SimulationManager")
     lm = LaunchManager()
-    launch_files, bag_files, observers = getYAMLData(sys.argv[1])
-    results_file = sys.argv[1] + "results" #example.sim => example.simresults
+    launch_files, bag_files, observers = getYAMLData(simFile)
+    results_file = simFile + "results"  # example.sim => example.simresults
     lm.addLaunchFiles(launch_files)
     lm.addBagFiles(bag_files)
     lm.extractTopicsFromLaunchFiles()
@@ -205,13 +221,19 @@ def main():
     print(lm.bags)
     signal.signal(signal.SIGINT, signal_handler)
 
-    lpm = LaunchProcessManager(lm.launch_files, lm.bags, lm.getRequiredTopicsFromBag(), observers, results_file)
+    lpm = LaunchProcessManager(
+        lm.launch_files, lm.bags, lm.getRequiredTopicsFromBag(), observers, results_file
+    )
 
     rospy.spin()
 
     # parseLaunchFile(launch_file)
 
 
-if __name__ == '__main__':
-    main()
- 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "simFile", help="The .sim file defining what to launch in the simulation"
+    )
+    args = parser.parse_args()
+    main(args.simFile)
