@@ -5,6 +5,6 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
 )
 
-catkin_python_setup()
-
 catkin_package()
+
+catkin_install_python(PROGRAMS src/start_sim.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

@@ -5,7 +5,7 @@ import rospy
 
 
 class FrequencyObserver(BaseObserver):
-    def __init__(self, name, *, topic, msgType, minFreq, **kwargs):
+    def __init__(self, *, name, topic, msgType, minFreq, **kwargs):
         super().__init__(name, [topic], [msgType], ObserverTypes.TRUE_AT_END)
         self.start_time = None
         self.most_recent_msg_time = None

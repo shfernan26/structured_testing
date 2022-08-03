@@ -53,6 +53,9 @@ class BaseObserver:
             self.intermediateResult = False
 
     def logResult(self, res):
+        """
+        Intended to be called throughout sim to log result and enforce types
+        """
         if self.overallResult:  # Result is determined current result does not matter
             return
         if self.type == ObserverTypes.ALWAYS_TRUE:
