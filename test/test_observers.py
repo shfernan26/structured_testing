@@ -1,3 +1,7 @@
+"""
+This file publishes the topics to stimulate the observers defined in example.sim
+"""
+
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float32, Header
