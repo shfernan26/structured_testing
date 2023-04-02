@@ -1,0 +1,58 @@
+launch_files:
+  - package: structured_testing
+    file: my_test_example.launch
+
+published_topics:
+  - /filtered_obj
+
+required_topics: 
+  - /associated_object
+
+bag_files:
+  - /Test1_2022-08-05-13-21-20/Test1_2022-08-05-13-21-20.db3
+
+test_duration:
+  - 10
+  
+observers:
+  - name: LeadVehicleInWindow
+    observerClass: InRangeObserver
+    topic: "/filtered_obj"
+    msgType: "common.msg.FilteredObjectMsg"
+    field: "obj_dx"
+    observerType: ALWAYS_TRUE
+    minVal: 30
+    maxVal: 85
+
+  - name: LeadVehicleFurtherThan
+    observerClass: MinMaxObserver
+    observerType: ALWAYS_TRUE
+    topic: "/filtered_obj"
+    msgType: "common.msg.FilteredObjectMsg"
+    field: "obj_dx"
+    value: 10 #in m 
+    isMin: True
+
+  - name: NodeIsAlive
+    observerClass: HeartbeatObserver
+    topic: "/filtered_obj"
+    msgType: "common.msg.FilteredObjectMsg"
+
+  - name: LeadVehicleCloserThan
+    observerClass: MinMaxObserver
+    observerType: ALWAYS_TRUE
+    topic: "/filtered_obj"
+    msgType: "common.msg.FilteredObjectMsg"
+    field: "obj_dx"
+    value: 120 #in m 
+    isMin: False #Max Value
+  
+  - name: FilteredMsgFrequency
+    observerClass: FrequencyObserver
+    topic: "/filtered_obj"
+    msgType: "common.msg.FilteredObjectMsg"
+    minFreq: 10
+  
+
+
+

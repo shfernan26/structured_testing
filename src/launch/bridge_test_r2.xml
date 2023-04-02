@@ -1,0 +1,11 @@
+<launch>
+   
+    <node pkg = "sensor_fusion" exec = "data_association" /> 
+    <node pkg = "sensor_fusion" exec = "environment_state" />
+    <node pkg = "perception_kalman" exec ="perception_kalman" />
+   
+    <node pkg = "master_task" exec = "master_task" />
+
+</launch>
+
+

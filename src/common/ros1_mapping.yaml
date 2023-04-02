@@ -1,0 +1,178 @@
+
+# Mapping section organized alphabetically
+- 
+  ros1_package_name: 'common'
+  ros1_message_name: 'acc_input_msg'
+  ros2_package_name: 'common'
+  ros2_message_name: 'AccInputMsg'
+-
+  ros1_package_name: 'common'
+  ros1_message_name: 'acc_output_msg'
+  ros2_package_name: 'common'
+  ros2_message_name: 'AccOutputMsg'
+  fields_1_to_2:
+    acc_fault: 'acc_fault'
+    acc_accel: 'acc_accel'
+-
+  ros1_package_name: 'common'
+  ros1_message_name: 'associated_object_msg'
+  ros2_package_name: 'common'
+  ros2_message_name: 'AssociatedObjectMsg'
+  fields_1_to_2:
+    obj_id: 'obj_id'
+    obj_dx: 'obj_dx'
+    obj_lane: 'obj_lane'
+    obj_vx: 'obj_vx'
+    obj_dy: 'obj_dy'
+    obj_ax: 'obj_ax'
+    obj_path: 'obj_path'
+    obj_vy: 'obj_vy'
+    obj_timestamp: 'obj_timestamp'
+    obj_count: 'obj_count'
+    obj_source: 'obj_source'
+-
+  ros1_package_name: 'common'
+  ros1_message_name: 'binary_class_msg'
+  ros2_package_name: 'common'
+  ros2_message_name: 'BinaryClassMsg'
+  fields_1_to_2:
+    dx: 'dx'
+    dy: 'dy'
+    vx: 'vx'
+    vy: 'vy'
+    timestamp: 'timestamp'
+    global_clk: 'global_clk'
+-
+  ros1_package_name: 'common'
+  ros1_message_name: 'can_comms_data_msg'
+  ros2_package_name: 'common'
+  ros2_message_name: 'CanCommsDataMsg'
+  fields_1_to_2:
+    long_accel: 'long_accel'
+    acc_valid: 'acc_valid'
+    aeb_valid: 'aeb_valid'
+    v2x_valid: 'v2x_valid'
+    acc_fault: 'acc_fault'
+    aeb_fault: 'aeb_fault'
+    front_radar_fault: 'front_radar_fault'
+    mobileye_fault: 'mobileye_fault'
+    acc_target: 'acc_target'
+    alive_rolling_counter: 'alive_rolling_counter'
+-
+  ros1_package_name: 'common'
+  ros1_message_name: 'drive_ctrl_input_msg'
+  ros2_package_name: 'common'
+  ros2_message_name: 'DriveCtrlInputMsg'
+  fields_1_to_2:
+    acc_activation: 'acc_activation'
+    aeb_activation: 'aeb_activation'
+    lcc_activation: 'lcc_activation'
+    acc_allowed: 'acc_allowed'
+    aeb_allowed: 'aeb_allowed'
+    v2x_overhead_switch: 'v2x_overhead_switch'
+    alive_rolling_counter_MABx: 'alive_rolling_counter_mabx'
+    alive_rolling_counter_Jetson: 'alive_rolling_counter_jetson'
+    acc_speed_set_point: 'acc_speed_set_point'
+    acc_gap_level: 'acc_gap_level'
+    veh_spd: 'veh_spd'
+    str_ang: 'str_ang'
+-
+  ros1_package_name: 'sensor_fusion'
+  ros1_service_name: 'env_state_srv'
+  ros2_package_name: 'common'
+  ros2_service_name: 'EnvStateSrv'
+  response_fields_1_to_2:
+    id: 'id'
+    dx: 'dx'
+    dy: 'dy'
+    vx: 'vx'
+    vy: 'vy'
+    timestamp: 'timestamp'
+-
+  ros1_package_name: 'common'
+  ros1_message_name: 'filtered_object_msg'
+  ros2_package_name: 'common'
+  ros2_message_name: 'FilteredObjectMsg'
+  fields_1_to_2:
+    obj_id: 'obj_id'
+    obj_dx: 'obj_dx'
+    obj_lane: 'obj_lane'
+    obj_vx: 'obj_vx'
+    obj_dy: 'obj_dy'
+    obj_ax: 'obj_ax'
+    obj_path: 'obj_path'
+    obj_vy: 'obj_vy'
+    obj_timestamp: 'obj_timestamp'
+    obj_count: 'obj_count'
+-
+  ros1_package_name: 'common'
+  ros1_message_name: 'intxn_info_msg'
+  ros2_package_name: 'common'
+  ros2_message_name: 'IntxnInfoMsg'
+  fields_1_to_2:
+    v2xEnabled: v2x_enabled
+    lightType: light_type
+    phaseNext: phase_next
+    range: range
+    countDown: count_down
+-
+  ros1_package_name: 'common'
+  ros1_message_name: 'mobileye_object_data'
+  ros2_package_name: 'common'
+  ros2_message_name: 'MobileyeObjectDataMsg'
+-
+  ros1_package_name: 'common'
+  ros1_message_name: 'radar_object_data'
+  ros2_package_name: 'common'
+  ros2_message_name: 'RadarObjectDataMsg'
+-
+  ros1_package_name: 'common'
+  ros1_message_name: 'target_output_msg'
+  ros2_package_name: 'common'
+  ros2_message_name: 'TargetOutputMsg'
+  fields_1_to_2:
+    obj_id: 'obj_id'
+    obj_dx: 'obj_dx'
+    obj_lane: 'obj_lane'
+    obj_vx: 'obj_vx'
+    obj_dy: 'obj_dy'
+    obj_ax: 'obj_ax'
+    obj_path: 'obj_path'
+    obj_vy: 'obj_vy'
+    obj_timestamp: 'obj_timestamp'
+    obj_track_num: 'obj_track_num'
+-
+  ros1_package_name: 'common'
+  ros1_message_name: 'tracked_output_msg'
+  ros2_package_name: 'common'
+  ros2_message_name: 'TrackedOutputMsg'
+  fields_1_to_2:
+    obj_id: 'obj_id'
+    obj_dx: 'obj_dx'
+    obj_lane: 'obj_lane'
+    obj_vx: 'obj_vx'
+    obj_dy: 'obj_dy'
+    obj_ax: 'obj_ax'
+    obj_path: 'obj_path'
+    obj_vy: 'obj_vy'
+    obj_timestamp: 'obj_timestamp'
+    obj_track_num: 'obj_track_num'
+-
+  ros1_package_name: 'common'
+  ros1_message_name: 'unfiltered_intxn_data_msg'
+  ros2_package_name: 'common'
+  ros2_message_name: 'UnfilteredIntxnDataMsg'
+  fields_1_to_2:
+    v2xEnabled: 'v2x_enabled'
+    lightType: 'light_type'
+    phaseNext: 'phase_next'
+    range: 'range'
+    countDown: 'count_down'
+-
+  ros1_package_name: 'common'
+  ros1_message_name: 'v2x_data_msg'
+  ros2_package_name: 'common'
+  ros2_message_name: 'V2xDataMsg'
+  fields_1_to_2:
+    v2x_accel: 'v2x_accel'
+    v2x_enabled: 'v2x_enabled'
