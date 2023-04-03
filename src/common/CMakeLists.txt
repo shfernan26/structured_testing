@@ -42,8 +42,5 @@ rosidl_generate_interfaces(
   DEPENDENCIES std_msgs
 )
 
-install(
-  FILES ros1_mapping.yaml
-  DESTINATION share/${PROJECT_NAME})
 
 ament_package()
