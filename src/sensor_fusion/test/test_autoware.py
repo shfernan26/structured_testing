@@ -10,21 +10,20 @@ import unittest
 
 @pytest.mark.launch_test
 def generate_test_description():
+
     association_node = Node(
         package='sensor_fusion',
-        executable='data_association'
+        executable='data_association_node'
     )
 
     context = {
-        'associater': association_node,
+        'association_node': association_node,
     }  
-    return (
-        LaunchDescription([
-            association_node,
-            ReadyToTest() # to start test right away
-        ]),
-        context
-    )
+    return LaunchDescription([
+        association_node,
+        # Start tests right away - no need to wait for anything
+        launch_testing.actions.ReadyToTest()]
+    ), context
 
 
 @launch_testing.post_shutdown_test()
