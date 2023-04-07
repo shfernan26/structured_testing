@@ -10,6 +10,10 @@ import rclpy
 import time
 import unittest
 
+import subprocess
+from subprocess import DEVNULL, STDOUT
+import signal
+import sys
 
 
 pytest.mark.launch_test
@@ -65,13 +69,11 @@ class TestKFNode(unittest.TestCase):
         self.node.destroy_node()
 
     def _msg_received(self, msg):
-        print('msg recieeved')
         # Callback for ROS 2 subscriber used in the test
         self.msgs.append(msg)
 
     def get_message(self):
         startlen = len(self.msgs)
-        print('startlen', startlen)
 
         # Try up to 5 s to receive messages
         end_time = time.time() + 5.0
@@ -93,9 +95,28 @@ class TestKFNode(unittest.TestCase):
     def test_object_published(self):
         empty_obj = AssociatedObjectMsg()
         empty_obj.obj_count = 0
-        print('here')
         self.obj_pub.publish(empty_obj)
-
         msg = self.get_message()
 
+
+    def test_min_max_range(self):
+
+        start_command = f"ros2 bag play src/structured_testing/test/Test1_2022-08-05-13-21-20/Test1_2022-08-05-13-21-20.db3 --topics /associated_object"
+        print(start_command)
+        subprocess.Popen(
+            start_command, shell=True, stdout=DEVNULL, stderr=STDOUT
+        )
+              
+        end_time = time.time() + 10.0
+        while rclpy.ok() and time.time() < end_time:
+            rclpy.spin(self.kf_node)
+            rclpy.spin(self.node)
+
+        minVal = 30
+        dx = 0
+        for msg in self.msgs:
+            dx = msg.obj_dx
+            print(dx)
+        
+        self.assertGreater(dx, minVal) 
 
