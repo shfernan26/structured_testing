@@ -1,41 +1,37 @@
-from ament_index_python import get_package_share_directory
+from common.msg import FilteredObjectMsg
+from common.msg import AssociatedObjectMsg
+from perception_kalman.perception_kalman import KF_Node
 from launch import LaunchDescription
 from launch_ros.actions import Node
 import launch_testing
- 
-import os
+from launch_testing.actions import ReadyToTest
 import pytest
+import rclpy
+import time
 import unittest
 
 
-@pytest.mark.launch_test
-def generate_test_description():
 
-    association_node = Node(
-        package='sensor_fusion',
-        executable='data_association_node'
+pytest.mark.launch_test
+def generate_test_description():
+    kf_node = Node(
+        package='perception_kalman',
+        namespace='perception_kalman1',
+        executable='perception_kalman'
     )
 
     context = {
-        'association_node': association_node,
+        'perception_kalman': kf_node,
     }  
-    return LaunchDescription([
-        association_node,
-        # Start tests right away - no need to wait for anything
-        launch_testing.actions.ReadyToTest()]
-    ), context
+    return (
+        LaunchDescription([
+            kf_node,
+            ReadyToTest() # to start test right away
+        ]),
+        context
+    )
 
-
-@launch_testing.post_shutdown_test()
-class TestProcessOutput(unittest.TestCase):
- 
-    def test_exit_code(self, proc_output, proc_info, ndt_mapper):
-        # Check that process exits with code -15 code: termination request, sent to the program
-        launch_testing.asserts.assertExitCodes(proc_info, [-15], process=ndt_mapper)
-
-
-'''
-class TestPlanningNode(unittest.TestCase):
+class TestKFNode(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -47,17 +43,17 @@ class TestPlanningNode(unittest.TestCase):
 
     def setUp(self):
         self.msgs = []
-        self.planning_node = PlanningNode()
+        self.kf_node = KF_Node()
         self.node = rclpy.create_node('test_node')
         
         self.obj_pub = self.node.create_publisher(
-            msg_type=TrackedObjectArray,
-            topic='tracked_obj_array',
+            msg_type=AssociatedObjectMsg,
+            topic='associated_object',
             qos_profile=10
         )
         self.sub = self.node.create_subscription(
-            msg_type=PlannedTrajectory,
-            topic='planned_trajectory',
+            msg_type=FilteredObjectMsg,
+            topic='filtered_obj',
             callback=self._msg_received,
             qos_profile=10
         )
@@ -65,21 +61,24 @@ class TestPlanningNode(unittest.TestCase):
         self.addCleanup(self.node.destroy_subscription, self.sub)
 
     def tearDown(self):
-        self.planning_node.destroy_node()
+        self.kf_node.destroy_node()
         self.node.destroy_node()
 
     def _msg_received(self, msg):
+        print('msg recieeved')
         # Callback for ROS 2 subscriber used in the test
         self.msgs.append(msg)
 
     def get_message(self):
         startlen = len(self.msgs)
+        print('startlen', startlen)
 
         # Try up to 5 s to receive messages
         end_time = time.time() + 5.0
         while time.time() < end_time:
-            rclpy.spin_once(self.planning_node, timeout_sec=0.1)
+            rclpy.spin_once(self.kf_node, timeout_sec=0.1)
             rclpy.spin_once(self.node, timeout_sec=0.1)
+            print('startlen', startlen)
             if startlen != len(self.msgs):
                 break
 
@@ -88,14 +87,15 @@ class TestPlanningNode(unittest.TestCase):
 
     def test_topic_name(self):
         topics = self.node.get_topic_names_and_types()
-        topic = "/planned_trajectory"
+        topic = "/filtered_obj"
         self.assertIn(topic, str(topics))
 
-    def test_trajectory_published(self):
-        empty_obj_array = TrackedObjectArray()
-        empty_obj_array.objects = []
-        empty_obj_array.num_of_objects = 0
-        self.obj_pub.publish(empty_obj_array)
+    def test_object_published(self):
+        empty_obj = AssociatedObjectMsg()
+        empty_obj.obj_count = 0
+        print('here')
+        self.obj_pub.publish(empty_obj)
 
         msg = self.get_message()
-'''
+
+

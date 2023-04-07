@@ -67,7 +67,6 @@ class MyKF():
 
 class KF_Node(Node):
     def __init__(self):
-        rclpy.init()
         super().__init__("perception_kalman")
         self.objects = {}
         self.create_subscription(AssociatedObjectMsg, 'associated_object',
@@ -131,6 +130,7 @@ class KF_Node(Node):
 
 
 def main():
+    rclpy.init()
     node = KF_Node()
     rclpy.spin(node)
     node.destroy_node()
