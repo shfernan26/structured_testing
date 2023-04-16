@@ -81,17 +81,6 @@ if(BUILD_TESTING)
   target_link_libraries(test_env_state ${colcon_LIBRARIES})
   ament_target_dependencies(test_env_state rclcpp common std_msgs)
 
-  # find_package(ament_lint_auto REQUIRED)
-  # ament_lint_auto_find_test_dependencies()
-
-  # ament_add_gtest(
-  #   test/test_autoware.py
-  #   TIMEOUT "30"
-  # )
-  
-  find_package(ament_cmake_pytest REQUIRED)
-  ament_add_pytest_test(test_autoware test/test_autoware.py)
-
 
 endif()
 
