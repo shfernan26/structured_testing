@@ -1,6 +1,7 @@
 from common.msg import FilteredObjectMsg
 from common.msg import AssociatedObjectMsg
 from perception_kalman.perception_kalman import KF_Node
+from mygig import MY_Node
 from launch import LaunchDescription
 from launch_ros.actions import Node
 import launch_testing
@@ -14,6 +15,7 @@ import subprocess
 from subprocess import DEVNULL, STDOUT
 import signal
 import sys
+import threading
 
 
 pytest.mark.launch_test
@@ -50,24 +52,25 @@ class TestKFNode(unittest.TestCase):
         self.bag_processes = []
         self.kf_node = KF_Node()
         self.node = rclpy.create_node('test_node')
+        self.callback_called = False
 
-        start_command = f"ros2 bag play src/structured_testing/test/Test1_2022-08-05-13-21-20/Test1_2022-08-05-13-21-20.db3 --topics /associated_object"
-        print("Playing rosbag: " + start_command)
-        self.bag_processes.append(
-                subprocess.Popen(
-                    start_command, shell=True, stdout=DEVNULL, stderr=STDOUT
-                )
-            )
-        
         # self.obj_pub = self.node.create_publisher(
         #     msg_type=AssociatedObjectMsg,
         #     topic='associated_object',
         #     qos_profile=10
         # )
+
         self.sub = self.node.create_subscription(
             msg_type=FilteredObjectMsg,
             topic='filtered_obj',
             callback=self._msg_received,
+            qos_profile=10
+        )
+
+        self.sub2 = self.node.create_subscription(
+            msg_type=AssociatedObjectMsg,
+            topic='associated_object',
+            callback=self.rosbag_started,
             qos_profile=10
         )
 
@@ -78,6 +81,9 @@ class TestKFNode(unittest.TestCase):
         self.node.destroy_node()
         for p in self.bag_processes:
             p.kill()
+
+    def rosbag_started(self):
+        self.callback_called =  True
 
     def _msg_received(self, msg):
         # Callback for ROS 2 subscriber used in the test
@@ -109,14 +115,35 @@ class TestKFNode(unittest.TestCase):
 
 
     def test_min_max_range(self):
+        
+        my_node = MY_Node()
+
+        start_command = "ros2 bag play src/structured_testing/test/Test1_2022-08-05-13-21-20/Test1_2022-08-05-13-21-20.db3 --topics /associated_object"
+
+        self.bag_processes.append(
+                subprocess.Popen(
+                    start_command, shell=True, stdout=DEVNULL, stderr=STDOUT
+                )
+            )
+
+        # Give the ros2bag time to start
+        time.sleep(5)
+
+        rclpy.spin_once(my_node, timeout_sec=0.1)
+
+        if not my_node.callback_called:
+            raise RuntimeError("Failed to start rosbag")
+        else:
+            print("Playing rosbag: " + start_command)
+
          
-        end_time = time.time() + 10
-        while rclpy.ok() and (time.time() < end_time):
-            print('Curr ', time.time())
-            print('End ', end_time)
-            time.sleep(1)
-            rclpy.spin_once(self.kf_node, timeout_sec=0.1)
-            rclpy.spin_once(self.node, timeout_sec=0.1)
+        # end_time = time.time() + 10
+        # while rclpy.ok() and (time.time() < end_time):
+        #     print('Curr ', time.time())
+        #     print('End ', end_time)
+        #     time.sleep(1)
+        #     rclpy.spin_once(self.kf_node, timeout_sec=0.1)
+        #     rclpy.spin_once(self.node, timeout_sec=0.1)
         
         print('DONE')
         print('BBBB', self.msgs)  
