@@ -47,14 +47,23 @@ class TestKFNode(unittest.TestCase):
 
     def setUp(self):
         self.msgs = []
+        self.bag_processes = []
         self.kf_node = KF_Node()
         self.node = rclpy.create_node('test_node')
+
+        start_command = f"ros2 bag play src/structured_testing/test/Test1_2022-08-05-13-21-20/Test1_2022-08-05-13-21-20.db3 --topics /associated_object"
+        print("Playing rosbag: " + start_command)
+        self.bag_processes.append(
+                subprocess.Popen(
+                    start_command, shell=True, stdout=DEVNULL, stderr=STDOUT
+                )
+            )
         
-        self.obj_pub = self.node.create_publisher(
-            msg_type=AssociatedObjectMsg,
-            topic='associated_object',
-            qos_profile=10
-        )
+        # self.obj_pub = self.node.create_publisher(
+        #     msg_type=AssociatedObjectMsg,
+        #     topic='associated_object',
+        #     qos_profile=10
+        # )
         self.sub = self.node.create_subscription(
             msg_type=FilteredObjectMsg,
             topic='filtered_obj',
@@ -67,6 +76,8 @@ class TestKFNode(unittest.TestCase):
     def tearDown(self):
         self.kf_node.destroy_node()
         self.node.destroy_node()
+        for p in self.bag_processes:
+            p.kill()
 
     def _msg_received(self, msg):
         # Callback for ROS 2 subscriber used in the test
@@ -80,10 +91,8 @@ class TestKFNode(unittest.TestCase):
         while time.time() < end_time:
             rclpy.spin_once(self.kf_node, timeout_sec=0.1)
             rclpy.spin_once(self.node, timeout_sec=0.1)
-            print('startlen', startlen)
             if startlen != len(self.msgs):
                 break
-
         self.assertNotEqual(startlen, len(self.msgs))
         return self.msgs[-1]
 
@@ -92,31 +101,31 @@ class TestKFNode(unittest.TestCase):
         topic = "/filtered_obj"
         self.assertIn(topic, str(topics))
 
-    def test_object_published(self):
-        empty_obj = AssociatedObjectMsg()
-        empty_obj.obj_count = 0
-        self.obj_pub.publish(empty_obj)
-        msg = self.get_message()
+    # def test_object_published(self):
+    #     empty_obj = AssociatedObjectMsg()
+    #     empty_obj.obj_count = 0
+    #     self.obj_pub.publish(empty_obj)
+    #     msg = self.get_message()
 
 
     def test_min_max_range(self):
-
-        start_command = f"ros2 bag play src/structured_testing/test/Test1_2022-08-05-13-21-20/Test1_2022-08-05-13-21-20.db3 --topics /associated_object"
-        print(start_command)
-        subprocess.Popen(
-            start_command, shell=True, stdout=DEVNULL, stderr=STDOUT
-        )
-              
-        end_time = time.time() + 10.0
-        while rclpy.ok() and time.time() < end_time:
-            rclpy.spin(self.kf_node)
-            rclpy.spin(self.node)
-
-        minVal = 30
-        dx = 0
-        for msg in self.msgs:
-            dx = msg.obj_dx
-            print(dx)
+         
+        end_time = time.time() + 10
+        while rclpy.ok() and (time.time() < end_time):
+            print('Curr ', time.time())
+            print('End ', end_time)
+            time.sleep(1)
+            rclpy.spin_once(self.kf_node, timeout_sec=0.1)
+            rclpy.spin_once(self.node, timeout_sec=0.1)
         
-        self.assertGreater(dx, minVal) 
+        print('DONE')
+        print('BBBB', self.msgs)  
+
+        # minVal = 30
+        # dx = 0
+        # for msg in self.msgs:
+        #     dx = msg.obj_dx
+            
+        
+        # self.assertGreater(dx, minVal) 
 

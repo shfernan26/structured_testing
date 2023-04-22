@@ -16,9 +16,9 @@ TEST(FindTargetObject, FindClosestObject) {
 
     env_state_test.find_target_object();
     
-    '''
+    /* 
     Block below should be in another test to check if objects cleared properly
-    '''
+    */ 
   //   rclcpp::Time start = nh->get_clock()->now();
   //   while (rclcpp::ok() && (nh->get_clock()->now() - start <= rclcpp::Duration::from_seconds(5.0)) ) {
   //     rclcpp::Time time_now = nh->now();
