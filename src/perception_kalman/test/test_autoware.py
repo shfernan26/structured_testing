@@ -1,7 +1,6 @@
 from common.msg import FilteredObjectMsg
 from common.msg import AssociatedObjectMsg
 from perception_kalman.perception_kalman import KF_Node
-from mygig import MY_Node
 from launch import LaunchDescription
 from launch_ros.actions import Node
 import launch_testing
@@ -10,12 +9,10 @@ import pytest
 import rclpy
 import time
 import unittest
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSDurabilityPolicy
 
 import subprocess
 from subprocess import DEVNULL, STDOUT
-import signal
-import sys
-import threading
 
 
 pytest.mark.launch_test
@@ -60,18 +57,23 @@ class TestKFNode(unittest.TestCase):
         #     qos_profile=10
         # )
 
-        self.sub = self.node.create_subscription(
-            msg_type=FilteredObjectMsg,
-            topic='filtered_obj',
-            callback=self._msg_received,
-            qos_profile=10
+        # self.sub = self.node.create_subscription(
+        #     msg_type=FilteredObjectMsg,
+        #     topic='filtered_obj',
+        #     callback=self._msg_received,
+        #     qos_profile=10
+        # )
+        qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_RELIABLE,
+            durability=QoSDurabilityPolicy.RMW_QOS_POLICY_DURABILITY_VOLATILE,
+            depth=10
         )
 
-        self.sub2 = self.node.create_subscription(
+        self.sub = self.node.create_subscription(
             msg_type=AssociatedObjectMsg,
             topic='associated_object',
             callback=self.rosbag_started,
-            qos_profile=10
+            qos_profile=qos_profile
         )
 
         self.addCleanup(self.node.destroy_subscription, self.sub)
@@ -116,8 +118,6 @@ class TestKFNode(unittest.TestCase):
 
     def test_min_max_range(self):
         
-        my_node = MY_Node()
-
         start_command = "ros2 bag play src/structured_testing/test/Test1_2022-08-05-13-21-20/Test1_2022-08-05-13-21-20.db3 --topics /associated_object"
 
         self.bag_processes.append(
@@ -129,30 +129,22 @@ class TestKFNode(unittest.TestCase):
         # Give the ros2bag time to start
         time.sleep(5)
 
-        rclpy.spin_once(my_node, timeout_sec=0.1)
+        end_time = time.time() + 10
+        while time.time() < end_time:
+            rclpy.spin_once(self.node, timeout_sec=0.1)
+            rclpy.spin_once(self.kf_node, timeout_sec=0.1)
 
-        if not my_node.callback_called:
+        if not self.callback_called:
             raise RuntimeError("Failed to start rosbag")
         else:
             print("Playing rosbag: " + start_command)
 
-         
-        # end_time = time.time() + 10
-        # while rclpy.ok() and (time.time() < end_time):
-        #     print('Curr ', time.time())
-        #     print('End ', end_time)
-        #     time.sleep(1)
-        #     rclpy.spin_once(self.kf_node, timeout_sec=0.1)
-        #     rclpy.spin_once(self.node, timeout_sec=0.1)
-        
-        print('DONE')
-        print('BBBB', self.msgs)  
+        minVal = 30
+        maxVal = 90
+        dx_list = []
+        for msg in self.msgs:
+            dx_list.append(msg.obj_dx)
 
-        # minVal = 30
-        # dx = 0
-        # for msg in self.msgs:
-        #     dx = msg.obj_dx
-            
-        
-        # self.assertGreater(dx, minVal) 
+        self.assertGreater(min(dx_list), minVal) 
+        self.assertLess(max(dx_list), maxVal) 
 
