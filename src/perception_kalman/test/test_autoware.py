@@ -13,6 +13,7 @@ from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSDurabilityPolicy
 
 import subprocess
 from subprocess import DEVNULL, STDOUT
+import nml_bag
 
 
 pytest.mark.launch_test
@@ -51,29 +52,17 @@ class TestKFNode(unittest.TestCase):
         self.node = rclpy.create_node('test_node')
         self.callback_called = False
 
-        # self.obj_pub = self.node.create_publisher(
-        #     msg_type=AssociatedObjectMsg,
-        #     topic='associated_object',
-        #     qos_profile=10
-        # )
-
-        # self.sub = self.node.create_subscription(
-        #     msg_type=FilteredObjectMsg,
-        #     topic='filtered_obj',
-        #     callback=self._msg_received,
-        #     qos_profile=10
-        # )
-        qos_profile = QoSProfile(
-            reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_RELIABLE,
-            durability=QoSDurabilityPolicy.RMW_QOS_POLICY_DURABILITY_VOLATILE,
-            depth=10
+        self.obj_pub = self.node.create_publisher(
+            msg_type=AssociatedObjectMsg,
+            topic='associated_object',
+            qos_profile=10
         )
 
         self.sub = self.node.create_subscription(
-            msg_type=AssociatedObjectMsg,
-            topic='associated_object',
-            callback=self.rosbag_started,
-            qos_profile=qos_profile
+            msg_type=FilteredObjectMsg,
+            topic='filtered_obj',
+            callback=self._msg_received,
+            qos_profile=10
         )
 
         self.addCleanup(self.node.destroy_subscription, self.sub)
@@ -83,9 +72,6 @@ class TestKFNode(unittest.TestCase):
         self.node.destroy_node()
         for p in self.bag_processes:
             p.kill()
-
-    def rosbag_started(self):
-        self.callback_called =  True
 
     def _msg_received(self, msg):
         # Callback for ROS 2 subscriber used in the test
@@ -109,38 +95,38 @@ class TestKFNode(unittest.TestCase):
         topic = "/filtered_obj"
         self.assertIn(topic, str(topics))
 
-    # def test_object_published(self):
-    #     empty_obj = AssociatedObjectMsg()
-    #     empty_obj.obj_count = 0
-    #     self.obj_pub.publish(empty_obj)
-    #     msg = self.get_message()
+    def test_object_published(self):
+        empty_obj = AssociatedObjectMsg()
+        empty_obj.obj_count = 0
+        self.obj_pub.publish(empty_obj)
+        msg = self.get_message()
 
 
     def test_min_max_range(self):
-        
-        start_command = "ros2 bag play src/structured_testing/test/Test1_2022-08-05-13-21-20/Test1_2022-08-05-13-21-20.db3 --topics /associated_object"
+        reader = nml_bag.Reader('/home/sachin/automated-testing-framework/src/structured_testing/test/Test1_2022-08-05-13-21-20/Test1_2022-08-05-13-21-20.db3', topics=['/associated_object'])
 
-        self.bag_processes.append(
-                subprocess.Popen(
-                    start_command, shell=True, stdout=DEVNULL, stderr=STDOUT
-                )
-            )
+        for message_record in reader: 
 
-        # Give the ros2bag time to start
-        time.sleep(5)
+            ass_msg = AssociatedObjectMsg()
+            ass_msg.obj_id = message_record["obj_id"]
+            ass_msg.obj_dx = message_record["obj_dx"]
+            ass_msg.obj_lane = message_record["obj_lane"]
+            ass_msg.obj_vx = message_record["obj_vx"]
+            ass_msg.obj_dy = message_record["obj_dy"]
+            ass_msg.obj_ax = message_record["obj_ax"]
+            ass_msg.obj_path = message_record["obj_path"]
+            ass_msg.obj_vy = message_record["obj_vy"]
+            ass_msg.obj_timestamp = message_record["obj_timestamp"]
+            ass_msg.obj_count = message_record["obj_count"]
+            ass_msg.obj_source = message_record["obj_source"]
+            self.obj_pub.publish(ass_msg)
 
-        end_time = time.time() + 10
-        while time.time() < end_time:
             rclpy.spin_once(self.node, timeout_sec=0.1)
             rclpy.spin_once(self.kf_node, timeout_sec=0.1)
 
-        if not self.callback_called:
-            raise RuntimeError("Failed to start rosbag")
-        else:
-            print("Playing rosbag: " + start_command)
 
         minVal = 30
-        maxVal = 90
+        maxVal = 85
         dx_list = []
         for msg in self.msgs:
             dx_list.append(msg.obj_dx)

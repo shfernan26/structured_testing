@@ -9,6 +9,8 @@ from common.msg import ObjectDeletionMsg, FilteredObjectMsg
 from common.msg import AssociatedObjectMsg
 import time
 from threading import Lock
+import subprocess
+from subprocess import DEVNULL, STDOUT
 
 
 # 1 = center lane, 2 = left lane, 3 = right lane
@@ -80,8 +82,8 @@ class KF_Node(Node):
 
     def obj_association_callback(self, obj):
         self.resource_lock.acquire()
-        self.get_logger().info('sensor fused callback called %d @ %f, %f'
-                               % (obj.obj_id, obj.obj_dx, obj.obj_dy))
+        # self.get_logger().info('sensor fused callback called %d @ %f, %f'
+        #                        % (obj.obj_id, obj.obj_dx, obj.obj_dy))
 
         measurement = [[obj.obj_dx],
                        [obj.obj_dy],
@@ -89,7 +91,7 @@ class KF_Node(Node):
                        [obj.obj_vy]]
 
         if obj.obj_id not in self.objects:
-            self.get_logger().info('creating object %d' % obj.obj_id)
+            # self.get_logger().info('creating object %d' % obj.obj_id)
             dt = 0.005
             # Initialization of state matrices
             X = array(measurement)
