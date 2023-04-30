@@ -3,18 +3,18 @@ from common.msg import AssociatedObjectMsg
 from perception_kalman.perception_kalman import KF_Node
 from launch import LaunchDescription
 from launch_ros.actions import Node
-import launch_testing
 from launch_testing.actions import ReadyToTest
 import pytest
 import rclpy
 import time
 import unittest
-from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSDurabilityPolicy
 
 import subprocess
 from subprocess import DEVNULL, STDOUT
 import nml_bag
-
+import time
+import psutil
+from os import getpid
 
 pytest.mark.launch_test
 def generate_test_description():
@@ -35,7 +35,13 @@ def generate_test_description():
         context
     )
 
-class TestKFNode(unittest.TestCase):
+class TestKFNode(unittest.TestCase):   
+    start = 0.0 
+    cutoff1_start = 0.0 
+    cutoff1_end = 0.0 
+    cutoff2_start = 0.0 
+    cutoff2_end = 0.0 
+    total_test_duration = 0.0
 
     @classmethod
     def setUpClass(cls):
@@ -44,10 +50,11 @@ class TestKFNode(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         rclpy.shutdown()
+        print(f"Test duration: {TestKFNode.total_test_duration - (TestKFNode.cutoff1_end-TestKFNode.cutoff1_start) - (TestKFNode.cutoff2_end-TestKFNode.cutoff2_start)}") 
 
     def setUp(self):
+        TestKFNode.start = time.time()
         self.msgs = []
-        self.bag_processes = []
         self.kf_node = KF_Node()
         self.node = rclpy.create_node('test_node')
         self.callback_called = False
@@ -68,14 +75,25 @@ class TestKFNode(unittest.TestCase):
         self.addCleanup(self.node.destroy_subscription, self.sub)
 
     def tearDown(self):
+        TestKFNode.cutoff2_start = time.time()
+        TestKFNode.get_usage_stats()
+        TestKFNode.cutoff2_end = time.time()
         self.kf_node.destroy_node()
         self.node.destroy_node()
-        for p in self.bag_processes:
-            p.kill()
+        TestKFNode.total_test_duration = time.time() - TestKFNode.start
+               
 
     def _msg_received(self, msg):
         # Callback for ROS 2 subscriber used in the test
         self.msgs.append(msg)
+    
+    def get_usage_stats():
+        my_process = psutil.Process(getpid())
+        print("Name:", my_process.name())
+        print("PID:", my_process.pid)
+        print("Executable:", my_process.exe())
+        print("CPU%:", my_process.cpu_percent(interval=1))
+        print("MEM%:", my_process.memory_percent())
 
     def get_message(self):
         startlen = len(self.msgs)
@@ -105,6 +123,7 @@ class TestKFNode(unittest.TestCase):
     def test_min_max_range(self):
         reader = nml_bag.Reader('/home/sachin/automated-testing-framework/src/structured_testing/test/Test1_2022-08-05-13-21-20/Test1_2022-08-05-13-21-20.db3', topics=['/associated_object'])
 
+        TestKFNode.cutoff1_start = time.time()
         for message_record in reader: 
 
             ass_msg = AssociatedObjectMsg()
@@ -124,6 +143,7 @@ class TestKFNode(unittest.TestCase):
             rclpy.spin_once(self.node, timeout_sec=0.1)
             rclpy.spin_once(self.kf_node, timeout_sec=0.1)
 
+        TestKFNode.cutoff1_end = time.time()
 
         minVal = 30
         maxVal = 85

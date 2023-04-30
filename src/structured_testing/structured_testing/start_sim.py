@@ -5,6 +5,9 @@ import sys
 import signal
 import subprocess
 import argparse
+import time
+import psutil
+from os import getpid
 
 from subprocess import DEVNULL, STDOUT
 
@@ -15,21 +18,46 @@ from observers import ObserverManager
 
 from sim_yaml_parser import getYAMLData, dumpOrderedDict
 
+START_TIME = 0.0
+END_TIME = 0.0
+CUTOFF1_START = 0.0
+CUTOFF1_END = 0.0
+CUTOFF2_START = 0.0
+CUTOFF2_END = 0.0
+
+
+def get_usage_stats():
+    my_process = psutil.Process(getpid())
+    print("Name:", my_process.name())
+    print("PID:", my_process.pid)
+    print("Executable:", my_process.exe())
+    print("CPU%:", my_process.cpu_percent(interval=1))
+    print("MEM%:", my_process.memory_percent())
+
 
 class LaunchProcessManager:
+
+    
+
     def __init__(self, launch_files, bags, topics, observers, results_file):
+        global CUTOFF1_START
+        global CUTOFF1_END
+        global CUTOFF2_START
         self.launch_files = launch_files
         self.topics = topics
         self.bags = bags
         self.bag_to_topic = self.generateGetBagTopicMap()
         self.bag_processes = []
         self.launch_processes = []
+        CUTOFF1_START = time.time()
         self.startBagPlayback()
+        CUTOFF1_END = time.time()
         self.startLaunchProcess()
         self.observer_manager = ObserverManager()
         for obs in observers:
             self.observer_manager.addObserver(obs)
         self.results_file = results_file
+        CUTOFF2_START = time.time()
 
     def startBagPlayback(self):
         for bag, topics in self.bag_to_topic.items():
@@ -62,6 +90,9 @@ class LaunchProcessManager:
         self.observer_manager.destroy_node()
 
     def kill(self):
+        global CUTOFF2_END
+        get_usage_stats()
+        CUTOFF2_END = time.time()
         self.killBagPlayback()
         self.killLaunchFiles()
         self.killObservers()
@@ -158,14 +189,21 @@ lpm = None
 
 
 def signal_handler(sig, frame):
-    print("Killing all Structured Testing")
+    global END_TIME
+    print("Killing all Structured Testing ", time.time())
     lpm.kill()
+    rclpy.try_shutdown()
+    total_test_duration = time.time() - START_TIME
+    print(f"Test duration: {total_test_duration - (CUTOFF1_END-CUTOFF1_START) - (CUTOFF2_END-CUTOFF2_START)}")    
     sys.exit(0)
+    
 
 
 def main(simFile):
     global lpm
+    global START_TIME
     rclpy.init(args=sys.argv)
+    START_TIME = time.time()
     rclpy.create_node('SimulationManager')
     lm = LaunchManager()
     launch_files, bag_files, duration, observers, pub_topics, req_topics = getYAMLData(simFile)
@@ -182,8 +220,6 @@ def main(simFile):
     )
 
     rclpy.spin(lpm.observer_manager)
-
-    rclpy.shutdown()
 
 
 if __name__ == "__main__":

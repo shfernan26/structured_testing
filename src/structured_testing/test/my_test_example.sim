@@ -12,7 +12,7 @@ bag_files:
   - /Test1_2022-08-05-13-21-20/Test1_2022-08-05-13-21-20.db3
 
 test_duration:
-  - 10
+  - 30
   
 observers:
   - name: LeadVehicleInWindow
