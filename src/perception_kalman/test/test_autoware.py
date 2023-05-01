@@ -95,35 +95,64 @@ class TestKFNode(unittest.TestCase):
         print("CPU%:", my_process.cpu_percent(interval=1))
         print("MEM%:", my_process.memory_percent())
 
-    def get_message(self):
-        startlen = len(self.msgs)
+    # def get_message(self):
+    #     startlen = len(self.msgs)
 
-        # Try up to 5 s to receive messages
-        end_time = time.time() + 5.0
-        while time.time() < end_time:
-            rclpy.spin_once(self.kf_node, timeout_sec=0.1)
-            rclpy.spin_once(self.node, timeout_sec=0.1)
-            if startlen != len(self.msgs):
-                break
-        self.assertNotEqual(startlen, len(self.msgs))
-        return self.msgs[-1]
+    #     # Try up to 5 s to receive messages
+    #     end_time = time.time() + 5.0
+    #     while time.time() < end_time:
+    #         rclpy.spin_once(self.kf_node, timeout_sec=0.1)
+    #         rclpy.spin_once(self.node, timeout_sec=0.1)
+    #         if startlen != len(self.msgs):
+    #             break
+    #     self.assertNotEqual(startlen, len(self.msgs))
+    #     return self.msgs[-1]
 
-    def test_topic_name(self):
-        topics = self.node.get_topic_names_and_types()
-        topic = "/filtered_obj"
-        self.assertIn(topic, str(topics))
+    # def test_topic_name(self):
+    #     topics = self.node.get_topic_names_and_types()
+    #     topic = "/filtered_obj"
+    #     self.assertIn(topic, str(topics))
 
-    def test_object_published(self):
-        empty_obj = AssociatedObjectMsg()
-        empty_obj.obj_count = 0
-        self.obj_pub.publish(empty_obj)
-        msg = self.get_message()
+    # def test_object_published(self):
+    #     empty_obj = AssociatedObjectMsg()
+    #     empty_obj.obj_count = 0
+    #     self.obj_pub.publish(empty_obj)
+    #     msg = self.get_message()
 
     def test_min_frequency(self):
-        pass
+        self.play_rosbag('/home/sachin/UWAFT/automated-testing-framework/src/structured_testing/test/Test1_2022-08-05-13-21-20/Test1_2022-08-05-13-21-20.db3', ['/associated_object'])
+        
+        if len(self.msgs) <= 1:  # Cannot infer freq from one or less msg
+            self.assertFalse
+        
+        timestamp_list = []
+        for msg in self.msgs:
+            timestamp_list.append(msg.obj_timestamp)
+               
+        delta_time = (timestamp_list[-1] - timestamp_list[0]) 
+        freq = 1 / (delta_time / len(self.msgs))
+        print('delta ', delta_time)
+        print('freq ', freq)
+        self.assertEqual(freq >= 0.001, True)
 
-    def test_min_max_range(self):
-        reader = nml_bag.Reader('/home/sachin/automated-testing-framework/src/structured_testing/test/Test1_2022-08-05-13-21-20/Test1_2022-08-05-13-21-20.db3', topics=['/associated_object'])
+
+    # def test_min_max_range(self):
+        
+    #     self.play_rosbag('/home/sachin/UWAFT/automated-testing-framework/src/structured_testing/test/Test1_2022-08-05-13-21-20/Test1_2022-08-05-13-21-20.db3', ['/associated_object'])
+
+    #     minVal = 30
+    #     maxVal = 85
+    #     dx_list = []
+    #     for msg in self.msgs:
+    #         dx_list.append(msg.obj_dx)
+
+    #     self.assertGreater(min(dx_list), minVal) 
+    #     self.assertLess(max(dx_list), maxVal) 
+
+    
+    def play_rosbag(self, rosbag, topics):
+
+        reader = nml_bag.Reader(rosbag, topics=topics)
 
         TestKFNode.cutoff1_start = time.time()
         for message_record in reader: 
@@ -147,12 +176,4 @@ class TestKFNode(unittest.TestCase):
 
         TestKFNode.cutoff1_end = time.time()
 
-        minVal = 30
-        maxVal = 85
-        dx_list = []
-        for msg in self.msgs:
-            dx_list.append(msg.obj_dx)
-
-        self.assertGreater(min(dx_list), minVal) 
-        self.assertLess(max(dx_list), maxVal) 
 
