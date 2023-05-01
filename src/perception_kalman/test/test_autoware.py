@@ -119,6 +119,8 @@ class TestKFNode(unittest.TestCase):
         self.obj_pub.publish(empty_obj)
         msg = self.get_message()
 
+    def test_min_frequency(self):
+        pass
 
     def test_min_max_range(self):
         reader = nml_bag.Reader('/home/sachin/automated-testing-framework/src/structured_testing/test/Test1_2022-08-05-13-21-20/Test1_2022-08-05-13-21-20.db3', topics=['/associated_object'])
