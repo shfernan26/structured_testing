@@ -11,7 +11,7 @@ import unittest
 
 import subprocess
 from subprocess import DEVNULL, STDOUT
-import nml_bag
+# import nml_bag
 import time
 import psutil
 from os import getpid
@@ -95,45 +95,50 @@ class TestKFNode(unittest.TestCase):
         print("CPU%:", my_process.cpu_percent(interval=1))
         print("MEM%:", my_process.memory_percent())
 
-    # def get_message(self):
-    #     startlen = len(self.msgs)
+    def get_message(self):
+        startlen = len(self.msgs)
 
-    #     # Try up to 5 s to receive messages
-    #     end_time = time.time() + 5.0
-    #     while time.time() < end_time:
-    #         rclpy.spin_once(self.kf_node, timeout_sec=0.1)
-    #         rclpy.spin_once(self.node, timeout_sec=0.1)
-    #         if startlen != len(self.msgs):
-    #             break
-    #     self.assertNotEqual(startlen, len(self.msgs))
-    #     return self.msgs[-1]
+        # Try up to 5 s to receive messages
+        end_time = time.time() + 5.0
+        while time.time() < end_time:
+            rclpy.spin_once(self.kf_node, timeout_sec=0.1)
+            rclpy.spin_once(self.node, timeout_sec=0.1)
+            if startlen != len(self.msgs):
+                break
+        self.assertNotEqual(startlen, len(self.msgs))
+        return self.msgs[-1]
 
-    # def test_topic_name(self):
-    #     topics = self.node.get_topic_names_and_types()
-    #     topic = "/filtered_obj"
-    #     self.assertIn(topic, str(topics))
+    def test_topic_name(self):
+        topics = self.node.get_topic_names_and_types()
+        topic = "/filtered_obj"
+        self.assertIn(topic, str(topics))
 
-    # def test_object_published(self):
-    #     empty_obj = AssociatedObjectMsg()
-    #     empty_obj.obj_count = 0
-    #     self.obj_pub.publish(empty_obj)
-    #     msg = self.get_message()
+    def test_object_published(self):
+        empty_obj = AssociatedObjectMsg()
+        empty_obj.obj_count = 0
+        self.obj_pub.publish(empty_obj)
+        msg = self.get_message()
 
-    def test_min_frequency(self):
-        self.play_rosbag('/home/sachin/UWAFT/automated-testing-framework/src/structured_testing/test/Test1_2022-08-05-13-21-20/Test1_2022-08-05-13-21-20.db3', ['/associated_object'])
+    '''
+    Tests below were developed for comparison purposes with ROS2 standard integration tests.
+    Uncomment and change the play_rosbag path as necessary
+    '''
+
+    # def test_min_frequency(self):
+    #     self.play_rosbag('/home/sachin/UWAFT/automated-testing-framework/src/structured_testing/test/Test1_2022-08-05-13-21-20/Test1_2022-08-05-13-21-20.db3', ['/associated_object'])
         
-        if len(self.msgs) <= 1:  # Cannot infer freq from one or less msg
-            self.assertFalse
+    #     if len(self.msgs) <= 1:  # Cannot infer freq from one or less msg
+    #         self.assertFalse
         
-        timestamp_list = []
-        for msg in self.msgs:
-            timestamp_list.append(msg.obj_timestamp)
+    #     timestamp_list = []
+    #     for msg in self.msgs:
+    #         timestamp_list.append(msg.obj_timestamp)
                
-        delta_time = (timestamp_list[-1] - timestamp_list[0]) 
-        freq = 1 / (delta_time / len(self.msgs))
-        print('delta ', delta_time)
-        print('freq ', freq)
-        self.assertEqual(freq >= 0.001, True)
+    #     delta_time = (timestamp_list[-1] - timestamp_list[0]) 
+    #     freq = 1 / (delta_time / len(self.msgs))
+    #     print('delta ', delta_time)
+    #     print('freq ', freq)
+    #     self.assertEqual(freq >= 0.001, True)
 
 
     # def test_min_max_range(self):
@@ -150,30 +155,28 @@ class TestKFNode(unittest.TestCase):
     #     self.assertLess(max(dx_list), maxVal) 
 
     
-    def play_rosbag(self, rosbag, topics):
+    # def play_rosbag(self, rosbag, topics):
 
-        reader = nml_bag.Reader(rosbag, topics=topics)
+    #     reader = nml_bag.Reader(rosbag, topics=topics)
 
-        TestKFNode.cutoff1_start = time.time()
-        for message_record in reader: 
+    #     TestKFNode.cutoff1_start = time.time()
+    #     for message_record in reader: 
 
-            ass_msg = AssociatedObjectMsg()
-            ass_msg.obj_id = message_record["obj_id"]
-            ass_msg.obj_dx = message_record["obj_dx"]
-            ass_msg.obj_lane = message_record["obj_lane"]
-            ass_msg.obj_vx = message_record["obj_vx"]
-            ass_msg.obj_dy = message_record["obj_dy"]
-            ass_msg.obj_ax = message_record["obj_ax"]
-            ass_msg.obj_path = message_record["obj_path"]
-            ass_msg.obj_vy = message_record["obj_vy"]
-            ass_msg.obj_timestamp = message_record["obj_timestamp"]
-            ass_msg.obj_count = message_record["obj_count"]
-            ass_msg.obj_source = message_record["obj_source"]
-            self.obj_pub.publish(ass_msg)
+    #         ass_msg = AssociatedObjectMsg()
+    #         ass_msg.obj_id = message_record["obj_id"]
+    #         ass_msg.obj_dx = message_record["obj_dx"]
+    #         ass_msg.obj_lane = message_record["obj_lane"]
+    #         ass_msg.obj_vx = message_record["obj_vx"]
+    #         ass_msg.obj_dy = message_record["obj_dy"]
+    #         ass_msg.obj_ax = message_record["obj_ax"]
+    #         ass_msg.obj_path = message_record["obj_path"]
+    #         ass_msg.obj_vy = message_record["obj_vy"]
+    #         ass_msg.obj_timestamp = message_record["obj_timestamp"]
+    #         ass_msg.obj_count = message_record["obj_count"]
+    #         ass_msg.obj_source = message_record["obj_source"]
+    #         self.obj_pub.publish(ass_msg)
 
-            rclpy.spin_once(self.node, timeout_sec=0.1)
-            rclpy.spin_once(self.kf_node, timeout_sec=0.1)
+    #         rclpy.spin_once(self.node, timeout_sec=0.1)
+    #         rclpy.spin_once(self.kf_node, timeout_sec=0.1)
 
-        TestKFNode.cutoff1_end = time.time()
-
-
+    #     TestKFNode.cutoff1_end = time.time()
