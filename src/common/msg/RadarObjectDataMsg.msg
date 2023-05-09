@@ -1,3 +1,6 @@
+std_msgs/Header header
+float64 radar_timestamp
+
 float64[32] radar_dx
 float64[32] radar_dy
 float64[32] radar_vx
@@ -21,7 +24,6 @@ float64[32] radar_obj_class
 float64[32] dx_rear_loss
  
 uint8 radar_num
-float64 radar_timestamp
 
 float64 veh_psi_dot
 float64 veh_v_ego

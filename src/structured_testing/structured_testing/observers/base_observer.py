@@ -10,7 +10,7 @@ from collections import OrderedDict
 import rclpy
 from rclpy.node import Node
 # from genpy.message import Message # Not yet in ROS2 (see below for usage)
-
+from message_filters import ApproximateTimeSynchronizer, Subscriber
 
 class ObserverTypes(Enum):
     ALWAYS_TRUE = 1
@@ -22,6 +22,8 @@ class ObserverTypes(Enum):
 class BaseObserver:
     def __init__(self, name, topics, msgTypes, observerType, **kwargs):
         self.name = name
+        if isinstance(topics[0], list) and isinstance(msgTypes[0], list):
+            raise AttributeError("Redundant list created in observer super initializer.")
         self.topics = topics
         self.field = None
         if type(observerType) != ObserverTypes:
@@ -81,20 +83,26 @@ class BaseObserver:
     def consumeMsg(self, topic, data):
         pass
 
-    def getField(self, msg, *args):
+    def getField(self, msg, field_idx=None, *args):
+        '''
+        If multiple topics (and thus fields) required, add field_idx
+        paramter to getField call in Observer class that specifies index of field to use.
+        '''
         attr = self.field
-
         def _getattr(msg, attr):
-            return getattr(msg, attr, *args)
+                return getattr(msg, attr, *args)
 
-        return functools.reduce(_getattr, [msg] + attr.split("."))
+        if type(attr) is list:
+            return functools.reduce(_getattr, [msg] + attr[field_idx].split("."))
+        else:
+            return functools.reduce(_getattr, [msg] + attr.split("."))
 
     def metadataDict(self):
         """Get Attributes we care about in dict (to be logged for later)."""
         data = OrderedDict()
         data["name"] = self.name
         if self.overallResult is not None:
-            data["Status"] = "PASS" if self.overallResult else "FAIL"
+            data["status"] = "PASS" if self.overallResult else "FAIL"
         else:
             data["status"] = "Undetermined"
         data["observerClass"] = self.__class__.__name__
@@ -111,9 +119,11 @@ class BaseObserver:
 class ObserverManager(Node):
     def __init__(self):
         self.observers = {}
-        self.subscribers = {}
+        self.subscribers = {} # holds subscribers for multi-topic observers
         self.syncedCallBacks = {}
         self.topic_observer_map = {}
+        self.multi_topic_key = ""
+        self.sub_list = []
 
     """
     Sets up subscriber to observer
@@ -145,18 +155,59 @@ class ObserverManager(Node):
             else:
                 self.topic_observer_map[topic] = [observer]
 
+        elif len(topics) == 2:
+            for topic in topics:
+                if topic not in self.subscribers:
+                    print(f"Setting up subscriber to {topic}")
+                    try:
+                        rclpy.init()
+                    except Exception:
+                        if not rclpy.ok():
+                            print("Init failure")
+                    observer_name = topic[1:]+"_observer"
+                    super().__init__(observer_name)
+                    sub = Subscriber(
+                        self,
+                        observer.msg_types[topic],
+                        topic
+                    )
+                    self.subscribers[observer_name] = sub
+                    self.sub_list.append(sub)
+
+                if not self.multi_topic_key: 
+                    self.multi_topic_key+=topic
+                else:
+                    self.multi_topic_key = self.multi_topic_key+","+topic
+
+            if self.multi_topic_key in self.topic_observer_map:
+                self.topic_observer_map[self.multi_topic_key].append(observer)
+            else:
+                self.topic_observer_map[self.multi_topic_key] = [observer]
+
+            # you can use ApproximateTimeSynchronizer if msgs dont have exactly the same timestamp        
+            self.time_sync = ApproximateTimeSynchronizer(
+                [Subscriber(self, observer.msg_types[topics[0]], topics[0]), Subscriber(self,  observer.msg_types[topics[1]], topics[1])],
+                queue_size=100,
+                slop=0.5  # defines the delay (in seconds) with which messages can be synchronized
+            )
+            self.time_sync.registerCallback(partial(self.syncedCallback, self.multi_topic_key))
+
         else:
-            # TODO: When an observer has multiple topics need to setup a time synchronizer
-            raise Exception("Observers with multiple topics are not supported yet")
+            raise NotImplementedError("Observers requiring 3 or more topics not currently supported")
+
 
     def genericCallback(self, extra_data, sub_data):
         topic = extra_data["topic"]
         for observer in self.topic_observer_map[topic]:
             observer.consumeMsg(topic, sub_data)
 
-    def syncedCallback(self, *args):
-        # TODO: For observers that have multiple topics
-        pass
+
+    def syncedCallback(self, multi_topic_key, topic1_data, topic2_data): 
+        topic_list = multi_topic_key.split(",")
+        for observer in self.topic_observer_map[multi_topic_key]:
+            observer.consumeMsg(topic_list[0], topic1_data)
+            observer.consumeMsg(topic_list[1], topic2_data)
+        
 
     def getResults(self):
         results = []

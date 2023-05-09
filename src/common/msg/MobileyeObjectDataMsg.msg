@@ -1,3 +1,5 @@
+std_msgs/Header header
+float64 me_timestamp
 uint8[10] me_id
 float64[10] me_dx
 float64[10] me_dy
@@ -10,4 +12,4 @@ uint8[10] me_cut_in_cut_out
 float64[10] me_age 
 uint8[10] me_lane
 bool[10] me_cipv_flag
-float64 me_timestamp
+

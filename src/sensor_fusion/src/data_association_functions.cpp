@@ -149,6 +149,7 @@ void DataAssociation::pub_object(common::msg::AssociatedObjectMsg &associated_ob
     associated_object_msg.obj_ax = obj_match.ax;
     associated_object_msg.obj_timestamp = obj_match.timestamp;
     associated_object_msg.obj_source = obj_match.source;
+    associated_object_msg.header.stamp = rclcpp::Time(static_cast<uint64_t>(associated_object_msg.obj_timestamp * 1e9));
 }
 
 void DataAssociation::delete_potential_objects() {

@@ -20,6 +20,7 @@ stages:          # List of stages for jobs, and their order of execution
   - build
   - unit-test
   - integrate-test
+  - system-test
 #   - deploy
 
 build-job:       # This job runs in the build stage, which runs first.
@@ -68,20 +69,35 @@ unit-test-job:   # This job runs in the test stage.
     - echo "Current directory is $PWD"
     - ls
     - source install/setup.bash
-    - colcon test --packages-skip simulation --event-handlers console_direct+
+    - colcon test --event-handlers console_direct+
     - colcon test-result
 
 integrate-test-job:   # This job runs in the test stage.
   stage: integrate-test    # It only starts when the job in the build stage completes successfully.
   dependencies: 
     - unit-test-job
+  artifacts:
+    untracked: true
+    paths:
+    - ./build/
+    - ./install/
   script:
     - echo "Running integration tests..."
     - echo "Current directory is $PWD"
-    - ls
     - source install/setup.bash
-    - python3 src/structured_testing/structured_testing/start_sim.py src/structured_testing/test/my_test_example.sim
-    - python3 src/structured_testing/structured_testing/check_results.py src/structured_testing/test/my_test_example.simresults
+    - python3 src/structured_testing/structured_testing/start_sim.py src/structured_testing/test/integration_testing/my_test_example.sim
+    - python3 src/structured_testing/structured_testing/check_results.py src/structured_testing/test/integration_testing/my_test_example.simresults
+
+system-test-job:   # This job runs in the test stage.
+  stage: system-test    # It only starts when the job in the build stage completes successfully.
+  dependencies: 
+    - integrate-test-job
+  script:
+    - echo "Running system tests..."
+    - echo "Current directory is $PWD"
+    - source install/setup.bash
+    - python3 src/structured_testing/structured_testing/start_sim.py src/structured_testing/test/system_testing/my_system_test.sim
+    - python3 src/structured_testing/structured_testing/check_results.py src/structured_testing/test/system_testing/my_system_test.simresults
 
 # lint-test-job:   # This job also runs in the test stage.
 #   stage: test    # It can run at the same time as unit-test-job (in parallel).

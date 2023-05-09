@@ -1,29 +1,29 @@
 - name: LeadVehicleInWindow
-  Status: PASS
+  status: PASS
   observerClass: InRangeObserver
   topic(s):
   - /filtered_obj
   field: obj_dx
   observerType: ALWAYS_TRUE
-  minValue: 30.0
+  minValue: 0.0
   maxValue: 85.0
 - name: LeadVehicleFurtherThan
-  Status: PASS
+  status: PASS
   observerClass: MinMaxObserver
   topic(s):
   - /filtered_obj
   field: obj_dx
   observerType: ALWAYS_TRUE
-  isMin: true
-  value: 10.0
+  isMin: false
+  value: 90.0
 - name: NodeIsAlive
-  Status: PASS
+  status: PASS
   observerClass: HeartbeatObserver
   topic(s):
   - /filtered_obj
   observerType: TRUE_ONCE
 - name: LeadVehicleCloserThan
-  Status: PASS
+  status: PASS
   observerClass: MinMaxObserver
   topic(s):
   - /filtered_obj
@@ -32,7 +32,7 @@
   isMin: false
   value: 120.0
 - name: FilteredMsgFrequency
-  Status: PASS
+  status: PASS
   observerClass: FrequencyObserver
   topic(s):
   - /filtered_obj

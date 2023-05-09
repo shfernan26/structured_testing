@@ -14,6 +14,7 @@ find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(
   ${PROJECT_NAME}
+  msg/GroundTruth.msg
   msg/FilteredObjectMsg.msg
   msg/CanCommsDataMsg.msg
   msg/BinaryClassMsg.msg
