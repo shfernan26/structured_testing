@@ -2,7 +2,7 @@ rosbag2_bagfile_information:
   version: 4
   storage_identifier: sqlite3
   relative_file_paths:
-    - Test1_2022-08-05-13-21-20.db3
+    - int_test_bag_1.db3
   duration:
     nanoseconds: 45029067387
   starting_time:

@@ -2,6 +2,7 @@
 from __future__ import print_function, division
 import rclpy
 from rclpy.node import Node
+from rclpy.time import Time
 from math import log, pi, exp
 from numpy import diag, eye, zeros, dot, tile, array
 from numpy.linalg import inv, det
@@ -9,8 +10,8 @@ from common.msg import ObjectDeletionMsg, FilteredObjectMsg
 from common.msg import AssociatedObjectMsg
 import time
 from threading import Lock
-import subprocess
 from subprocess import DEVNULL, STDOUT
+import signal
 
 
 # 1 = center lane, 2 = left lane, 3 = right lane
@@ -123,6 +124,12 @@ class KF_Node(Node):
         result.obj_id = obj.obj_id
         result.obj_lane, result.obj_path = determine_lane(result.obj_dy)
         result.obj_timestamp = obj.obj_timestamp
+
+        sec = int(result.obj_timestamp)
+        nsec = int((result.obj_timestamp - sec) * 1e9)
+        time_msg = Time(seconds=sec, nanoseconds=nsec)
+        result.header.stamp = time_msg.to_msg()
+
         result.obj_count = 30
         self.output.publish(result)
         self.resource_lock.release()
@@ -131,9 +138,15 @@ class KF_Node(Node):
         del self.objects[obj.obj_id]
 
 
+def signal_handler(sig, frame):
+    rclpy.shutdown()
+    print("Killing all Structured Testing")
+    # sys.exit(0)
+
+
 def main():
     rclpy.init()
     node = KF_Node()
+    signal.signal(signal.SIGINT, signal_handler)
     rclpy.spin(node)
     node.destroy_node()
-    rclpy.shutdown()

@@ -13,7 +13,7 @@ def getResults(yaml_file):
 
     tests_pass = True
     for observer in results_lst:
-        if observer["Status"] == 'FAIL':
+        if observer["status"] == 'FAIL':
             tests_pass = False
 
     return tests_pass
@@ -23,7 +23,7 @@ def main(simResultsFile):
     test_status = getResults(simResultsFile)
 
     if test_status:
-        print("All integration tests pass")
+        print("All tests pass")
         sys.exit(0)
     else:
         print("At least one integration test has failed")

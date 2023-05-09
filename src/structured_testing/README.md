@@ -5,7 +5,7 @@ In short this package serves as an intermediate testing phase between unit testi
 1. Get ROS2 bag to use from server if not already present in repo: `\\uwaft01.uwaterloo.ca\uwaft\CAV\CAV Workshops, Webinars and Training\Internal\Structured ROS Node Testing Demo\Test1_2022-08-05-13-21-20`
 1.1 ROS2 bag can be visualized using plotjuggler or similar visualization tool.
 
-2. Move ROS2 bag within test folder of structured_testing package.
+2. Move ROS2 bag within test/ folder of structured_testing package.
 
 3. Build structure_testing package.
 

@@ -1,0 +1,17 @@
+- name: SystemPrecisionRecall
+  status: PASS
+  observerClass: PrecisionRecallObserver
+  topic(s):
+  - /tracked_obj
+  - /Ground_Truth
+  field:
+  - obj_dx
+  - obj_dy
+  - dx
+  - dy
+  observerType: TRUE_AT_END
+  tol: 4
+  precisionPassScore: 0.6
+  recallPassScore: 0.6
+  precision: 0.71
+  recall: 1.0

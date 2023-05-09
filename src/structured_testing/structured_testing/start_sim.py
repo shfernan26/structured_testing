@@ -36,7 +36,6 @@ def get_usage_stats():
 
 
 class LaunchProcessManager:
-
     
 
     def __init__(self, launch_files, bags, topics, observers, results_file):

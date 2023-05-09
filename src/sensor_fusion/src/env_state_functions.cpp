@@ -41,6 +41,8 @@ void EnvironmentState::publish_target_obj() {
   target_output_msg.obj_path = targetObjectsInLanes[0].get_obj_path();
   target_output_msg.obj_vy = targetObjectsInLanes[0].get_obj_vy();
   target_output_msg.obj_timestamp = targetObjectsInLanes[0].get_obj_timestamp();
+  target_output_msg.header.stamp = rclcpp::Time(static_cast<uint64_t>(target_output_msg.obj_timestamp * 1e9));
+
     
   target_obj_pub->publish(target_output_msg);
 }
@@ -56,7 +58,7 @@ void EnvironmentState::publish_tracked_obj() { // from left to right
       tracked_output_msg.obj_path[lane] = targetObjectsInLanes[lane].get_obj_path();
       tracked_output_msg.obj_vy[lane] = targetObjectsInLanes[lane].get_obj_vy();
       tracked_output_msg.obj_timestamp[lane] = targetObjectsInLanes[lane].get_obj_timestamp();
-
+      tracked_output_msg.header.stamp = rclcpp::Time(static_cast<uint64_t>(tracked_output_msg.obj_timestamp[lane] * 1e9));
   }
   tracked_obj_pub->publish(tracked_output_msg);
 }
@@ -76,6 +78,7 @@ void EnvironmentState::publish_all_tracked_obj() {
       all_tracked_output_msg.obj_path = trackedObjects[i].get_obj_path();
       all_tracked_output_msg.obj_vy = trackedObjects[i].get_obj_vy();
       all_tracked_output_msg.obj_timestamp = trackedObjects[i].get_obj_timestamp();
+      all_tracked_output_msg.header.stamp = rclcpp::Time(static_cast<uint64_t>(all_tracked_output_msg.obj_timestamp * 1e9));
       
       all_tracked_obj_pub->publish(all_tracked_output_msg);
     }

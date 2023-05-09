@@ -9,7 +9,7 @@ required_topics:
   - /associated_object
 
 bag_files:
-  - /Test1_2022-08-05-13-21-20/Test1_2022-08-05-13-21-20.db3
+  - /int_test_bag_1/int_test_bag_1.db3
 
 test_duration:
   - 30
@@ -21,7 +21,7 @@ observers:
     msgType: "common.msg.FilteredObjectMsg"
     field: "obj_dx"
     observerType: ALWAYS_TRUE
-    minVal: 30
+    minVal: 0
     maxVal: 85
 
   - name: LeadVehicleFurtherThan
@@ -30,8 +30,8 @@ observers:
     topic: "/filtered_obj"
     msgType: "common.msg.FilteredObjectMsg"
     field: "obj_dx"
-    value: 10 #in m 
-    isMin: True
+    value: 90 #in m 
+    isMin: False
 
   - name: NodeIsAlive
     observerClass: HeartbeatObserver

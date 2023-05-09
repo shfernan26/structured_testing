@@ -72,6 +72,7 @@ def getObservers(data):
             clsmembers = inspect.getmembers(sys.modules[__name__], inspect.isclass)
             clsmembers = dict(clsmembers)
             obsClass = clsmembers[obsClassName]
+            print('class ', obsClass)
             o = obsClass(**obs)
             observers.append(o)
         except Exception as e:
