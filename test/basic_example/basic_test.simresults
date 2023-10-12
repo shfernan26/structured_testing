@@ -1,0 +1,41 @@
+- name: FusionIsAlive
+  status: PASS
+  observerClass: HeartbeatObserver
+  topic(s):
+  - /chatter
+  observerType: TRUE_ONCE
+- name: OnlyIncreasingValue
+  status: PASS
+  observerClass: MonotonicObserver
+  topic(s):
+  - /testing_topic
+  field: data
+  observerType: ALWAYS_TRUE
+  isIncreasing: true
+- name: FastPublishing
+  status: PASS
+  observerClass: FrequencyObserver
+  topic(s):
+  - /testing_topic
+  observerType: TRUE_AT_END
+  minFreq: 10.0
+  actualFreq: 40.356630655831154
+- name: NumberInRange
+  status: PASS
+  observerClass: InRangeObserver
+  topic(s):
+  - /testing_topic
+  field: data
+  observerType: ALWAYS_TRUE
+  minValue: 0.0
+  maxValue: 1000.0
+- name: DataNotNegative
+  status: PASS
+  observerClass: MinMaxObserver
+  topic(s):
+  - /testing_topic
+  field: data
+  observerType: ALWAYS_TRUE
+  isMin: true
+  targetValue: 0.0
+  actualValue: 0.0

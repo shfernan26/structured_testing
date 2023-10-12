@@ -1,9 +1,0 @@
-<launch>
-
-    <node pkg = "perception_kalman" exec ="perception_kalman" />
-    <node pkg = "sensor_fusion" exec ="data_association" />
-    <node pkg = "sensor_fusion" exec ="environment_state" />
-    
-    
-</launch>
-

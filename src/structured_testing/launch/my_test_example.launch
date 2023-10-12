@@ -1,6 +1,0 @@
-<launch>
-
-    <node pkg = "perception_kalman" exec ="perception_kalman" />
-    
-</launch>
-

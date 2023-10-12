@@ -1,0 +1,55 @@
+launch_files:
+  - package: structured_testing
+    file: test_launch.launch
+
+published_topics:
+  - /chatter
+
+required_topics: 
+  - /testing_topic
+  - /chatter
+
+bag_files:
+  - /basic_example/MonoIncreasingPub/MonoIncreasingPub.db3
+
+test_duration:
+  - 0
+  
+observers:
+  - name: FusionIsAlive
+    observerClass: HeartbeatObserver
+    topic: "/chatter"
+    msgType: "std_msgs.msg.String"
+  
+  - name: OnlyIncreasingValue
+    observerClass: MonotonicObserver
+    topic: "/testing_topic"
+    observerType: ALWAYS_TRUE
+    msgType: "std_msgs.msg.Int32"
+    field: "data"
+    isIncreasing: True
+
+  - name: FastPublishing
+    observerClass: FrequencyObserver
+    topic: "/testing_topic"
+    observerType: ALWAYS_TRUE
+    msgType: "std_msgs.msg.Int32"
+    minFreq: 10
+
+  - name: NumberInRange
+    observerClass: InRangeObserver
+    topic: "/testing_topic"
+    msgType: "std_msgs.msg.Int32"
+    field: "data"
+    observerType: ALWAYS_TRUE
+    minVal: 0
+    maxVal: 1000
+
+  - name: DataNotNegative
+    observerClass: MinMaxObserver
+    observerType: ALWAYS_TRUE
+    topic: "/testing_topic"
+    msgType: "std_msgs.msg.Int32"
+    field: "data"
+    value: 0
+    isMin: True
