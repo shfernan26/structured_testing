@@ -1,6 +1,6 @@
 # CAV Structured Testing for Simulation
 
-The structured testing framework is a method introduced for UWAFT to start ROS 2 nodes. It serves as an extenstion of the existing ROS 2 launch framework. The target use case for this tool is when a developer wants to test a part of the stack against a scenario that has been logged in ROS bag files.
+The structured testing framework is a method introduced to validate a system or just a subset of ROS 2 nodes. It serves as an extenstion of the existing ROS 2 launch framework. The target use case for this tool is when a developer wants to test a part of the stack against a scenario that has been logged in ROS 2 bag files.
 Certain nodes can be launched independently and their required topics can be made available from a given bag file. At a very high level this tool does 3 main tasks:
 
 1. Start launch files.
